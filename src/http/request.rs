@@ -1,3 +1,4 @@
+use std::str::Utf8Error;
 use std::u8;
 use std::error::Error;
 use std::fmt::{Display, Debug, Formatter, Result as FmtResult};
@@ -12,9 +13,20 @@ pub struct Request {
 
 impl TryFrom<&[u8]> for Request {
     type Error = ParseError;
-    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        unimplemented!()
+    fn try_from(buffer: &[u8]) -> Result<Self, Self::Error> {
+        let request = std::str::from_utf8(buffer)?;
+
+        unimplemented!();
     }
+}
+
+fn get_next_word(request: &str) -> Option<(&str, &str)> {
+    for (i, c) in request.chars().enumerate() {
+        if c == ' ' {
+                return Some((&request[..i], &request[i+1..]));
+        }
+    }
+    None
 }
 
 pub enum ParseError {
@@ -36,6 +48,12 @@ impl Debug for ParseError {
     }
 }
 
+impl From<Utf8Error>for ParseError {
+    fn from(_ : Utf8Error) -> Self {
+        Self::InvalidEncoding
+    }
+}
+
 impl ParseError {
     fn message(&self) -> &str {
         match self {
@@ -48,5 +66,4 @@ impl ParseError {
 }
 
 impl Error for ParseError {
-
 }
